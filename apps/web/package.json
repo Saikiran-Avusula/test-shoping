@@ -12,6 +12,7 @@
     "test:e2e:ui": "cross-env NEXT_PUBLIC_AUTH_DEMO=true next build && playwright test --ui",
     "test:e2e:headed": "cross-env NEXT_PUBLIC_AUTH_DEMO=true next build && playwright test --headed",
     "test:e2e:api": "cross-env NEXT_PUBLIC_API_URL=http://localhost:4001 next build && playwright test -c playwright.api.config.ts",
+    "test:e2e:real-mode": "cross-env NEXT_PUBLIC_API_URL=http://localhost:4001 next build && playwright test -c playwright.real-mode.config.ts",
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {

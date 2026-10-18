@@ -16,7 +16,8 @@ describe("email signup", () => {
     const res = await me.post("/auth/signup", person());
     expect(res.status).toBe(201);
     expect(res.body.user).toMatchObject({ name: "Test Buyer 1", email: "buyer1@example.com", provider: "password" });
-    expect(Object.keys(res.body.user).sort()).toEqual(["email", "emailVerified", "id", "name", "provider"]); // nothing secret in the reply
+    expect(new Date(res.body.user.createdAt).getTime()).toBeLessThanOrEqual(Date.now());
+    expect(Object.keys(res.body.user).sort()).toEqual(["createdAt", "email", "emailVerified", "id", "name", "provider"]); // nothing secret in the reply
 
     const cookie = String(res.headers["set-cookie"]);
     expect(cookie).toMatch(/pf_session=/);

@@ -558,3 +558,26 @@ span.linkMuted {
     grid-template-columns: revert;
   }
 }
+
+/* real accounts: only the tiles that are true (orders, addresses), so two columns at every width */
+.stats.statsFew {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.avatarInitial {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #b77001;
+  font: 600 34px/1 var(--font-display);
+}
+
+.emptyState p {
+  margin: 0 0 6px;
+}
+
+.emptyState p:first-child {
+  color: #111;
+  font-weight: 600;
+}

@@ -1,8 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Bell, ChevronRight, CreditCard, Crown, Headset, Heart, House, LogOut, MapPin, Package, Star,
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { SiteFooter } from "@/components/layout/SiteFooter/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader/SiteHeader";
-import { signOutUser, useSession } from "@/lib/auth";
+import { authMode, signOutUser, useSession } from "@/lib/auth";
 import { useBag } from "@/lib/bag";
 import { easeOutExpo } from "@/lib/motion/presets";
 import styles from "./AccountShell.module.css";
@@ -31,6 +31,9 @@ const navItems: NavItem[] = [
   { key: "support", label: "Help & Support", Icon: Headset },
 ];
 
+/** Wishlist and Membership are not built yet. Their sidebar rows only appear in the design preview (demo mode). */
+const unbuilt = new Set(["wishlist", "membership"]);
+
 type AccountShellProps = {
   active: "overview" | "orders";
   title: string;
@@ -43,8 +46,17 @@ type AccountShellProps = {
 export function AccountShell({ active, title, subtitle, headerActions, children }: AccountShellProps) {
   const bag = useBag();
   const router = useRouter();
-  const { user } = useSession();
+  const pathname = usePathname();
+  const { user, ready } = useSession();
   const reduceMotion = useReducedMotion();
+  // Only the demo preview (UI review, tests) shows sample data and lets signed-out visitors in. Everywhere else the account
+  // pages belong to the signed-in customer: signed-out visitors go to sign in and come back to the page they asked for.
+  const preview = authMode === "demo";
+  const signedOut = !preview && !user;
+  useEffect(() => {
+    if (!preview && ready && !user) router.replace(`/login?next=${pathname}`);
+  }, [preview, ready, user, router, pathname]);
+  const items = preview ? navItems : navItems.filter((item) => !unbuilt.has(item.key));
   // sidebar rows slide in one after another; the same hidden state with or without reduced motion
   const row = (index: number) => ({
     initial: { opacity: 0, x: -18 },
@@ -74,7 +86,7 @@ export function AccountShell({ active, title, subtitle, headerActions, children 
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
             <nav aria-label="Account sections">
-              {navItems.map(({ key, label, Icon, href }, index) => {
+              {items.map(({ key, label, Icon, href }, index) => {
                 const content = (
                   <>
                     <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
@@ -104,9 +116,9 @@ export function AccountShell({ active, title, subtitle, headerActions, children 
               <Link href="/login?next=/account" className={styles.logout}>Sign in to your account</Link>
             )}
           </aside>
-          <section className={styles.content}>{children}</section>
+          <section className={styles.content}>{signedOut ? <p className={styles.emptyState} role="status">{ready ? "Taking you to sign in…" : "Loading your account…"}</p> : children}</section>
         </div>
-        <p className={styles.demoNote}>Demo account data — sign-in, orders and wishlist are not connected yet.</p>
+        {preview && <p className={styles.demoNote}>Demo account data — sign-in, orders and wishlist are not connected yet.</p>}
       </main>
       <SiteFooter />
     </div>

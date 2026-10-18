@@ -10,6 +10,8 @@ export type PublicCustomer = {
   provider: "password" | "google";
   /** Whether the email address has been proven to belong to this customer (Google, verification link or reset code). */
   emailVerified: boolean;
+  /** When the account was created (ISO 8601), shown as "Member since". */
+  createdAt: string;
   picture?: string;
 };
 
@@ -19,6 +21,7 @@ export const toPublicCustomer = (customer: Customer): PublicCustomer => ({
   email: customer.email,
   provider: customer.passwordHash ? "password" : "google",
   emailVerified: customer.emailVerifiedAt !== null,
+  createdAt: customer.createdAt.toISOString(),
   ...(customer.pictureUrl ? { picture: customer.pictureUrl } : {}),
 });
 

@@ -7,6 +7,8 @@ export type AuthUser = {
   provider: "password" | "google";
   /** Whether the email address has been proven to belong to this customer (Google, the emailed link, or a reset code). */
   emailVerified: boolean;
+  /** When the account was created (ISO 8601). Sent by the store API; the demo accounts have none. */
+  createdAt?: string;
   picture?: string;
 };
 

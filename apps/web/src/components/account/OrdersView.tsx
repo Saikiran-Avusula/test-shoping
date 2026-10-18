@@ -2,15 +2,20 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, Search } from "lucide-react";
-import { allDemoOrders, formatOrderTotal } from "@/lib/account";
+import { allDemoOrders, formatOrderTotal, type DemoOrder } from "@/lib/account";
+import { authMode } from "@/lib/auth";
 import { useBag } from "@/lib/bag";
 import { easeOutExpo } from "@/lib/motion/presets";
 import { AccountShell } from "./AccountShell";
 import styles from "./AccountPages.module.css";
 
 const pageSize = 4;
+
+/** No order service exists yet (orders belong to the ERP), so real customers have none. The sample orders are for the design preview only. */
+const noOrders: DemoOrder[] = [];
 
 /** Page numbers to show, e.g. 1 2 3 4 5 … 13, or 1 … 6 7 8 … 13 when in the middle. */
 function pageItems(current: number, total: number): (number | "gap")[] {
@@ -28,8 +33,10 @@ export function OrdersView() {
   const [page, setPage] = useState(1);
   const [notice, setNotice] = useState("");
 
+  const preview = authMode === "demo";
+  const orders = preview ? allDemoOrders : noOrders;
   const term = query.trim().toLowerCase();
-  const matching = allDemoOrders.filter((order) => !term || order.id.toLowerCase().includes(term) || order.items.some((item) => item.name.toLowerCase().includes(term)));
+  const matching = orders.filter((order) => !term || order.id.toLowerCase().includes(term) || order.items.some((item) => item.name.toLowerCase().includes(term)));
   // the demo orders are already newest-first
   const ordered = sort === "recent" ? matching : [...matching].reverse();
   const totalPages = Math.max(1, Math.ceil(ordered.length / pageSize));
@@ -58,11 +65,18 @@ export function OrdersView() {
   );
 
   return (
-    <AccountShell active="orders" title="My Orders" subtitle="Track, return or buy again from your past orders." headerActions={controls}>
+    <AccountShell active="orders" title="My Orders" subtitle="Track, return or buy again from your past orders." headerActions={orders.length > 0 ? controls : undefined}>
       {notice && <p className={styles.notice} role="status">{notice}</p>}
 
       <div id="orders-list">
-        {visible.length === 0 && <p className={styles.emptyState}>No orders match your search.</p>}
+        {orders.length === 0 && (
+          <div className={styles.emptyState}>
+            <p>No orders yet</p>
+            <p>When you place an order, it will appear here.</p>
+            <Link href="/new-arrivals" className={styles.linkMuted}>Start shopping</Link>
+          </div>
+        )}
+        {orders.length > 0 && visible.length === 0 && <p className={styles.emptyState}>No orders match your search.</p>}
 
         {/* a new page of orders slides in as the page numbers are used */}
         <AnimatePresence mode="wait" initial={false}>
